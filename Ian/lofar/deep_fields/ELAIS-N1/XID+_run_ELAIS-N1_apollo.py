@@ -48,14 +48,16 @@ lofar = lofar[~mask]
 
 print(len(lofar))
 
-if taskid*10>len(lofar):
+batch_size = 20
+
+if taskid*batch_size>len(lofar):
     print('Task id is too high. Trying to run code on more sources than exist')
     sys.exit()
-ind_low = taskid*10
-if taskid*10+9>len(lofar):
+ind_low = taskid*batch_size
+if taskid*batch_size+batch_size>len(lofar):
     ind_up = len(lofar)-1
 else:
-    ind_up = taskid*10+10
+    ind_up = taskid*batch_size+batch_size
 ras = lofar['optRA'][ind_low:ind_up]
 mask = np.isnan(ras)
 ras[mask] = lofar['RA'][ind_low:ind_up][mask]
@@ -66,23 +68,25 @@ decs[mask] = lofar['DEC'][ind_low:ind_up][mask]
 
 ids = lofar['Source_Name'][ind_low:ind_up]
 
-print(len(ras))
+#print(len(ras))
 
-columns = 'ra','dec','help_id','flag_optnir_det','f_mips_24'
+'''columns = 'ra','dec','help_id','flag_optnir_det','f_mips_24'
 masterlist = Table.read('../../../../../HELP/dmu_products/dmu32/dmu32_ELAIS-N1/data/ELAIS-N1_20171020.fits')
 help_masterlist = masterlist[columns]
 masterlist = 0
 
-'''lofar_coords = SkyCoord(ra,dec,unit='deg')
+lofar_coords = SkyCoord(ra,dec,unit='deg')
 help_coords = SkyCoord(help_masterlist['ra'],help_masterlist['dec'],unit='deg')
 radius = 2
 idx_help, idx_lofar, d2d, d3d = lofar_coords.search_around_sky(
-    help_coords, radius*u.arcsec)'''
+    help_coords, radius*u.arcsec)
 
 prior_mask = (help_masterlist['flag_optnir_det']>=5) & (help_masterlist['f_mips_24']>20)
 prior_cat = help_masterlist[prior_mask]
 for n,pos in enumerate(ras):
-    prior_cat.add_row([ras[n],decs[n],ids[n],-99,np.nan])
+    prior_cat.add_row([ras[n],decs[n],ids[n],-99,np.nan])'''
+
+prior_cat = Table.read('data/data_release/xidplus_prior_cat.fits')
 #xid_rerun = Column(name='XID_rerun',data=np.zeros(len(prior_cat))-99)
 #prior_cat.add_column(xid_rerun)
 
@@ -145,30 +149,30 @@ plwfits=imfolder+'ELAIS-N1_SPIRE500_v1.0.fits'#SPIRE 500 map
 #-----250-------------
 hdulist = fits.open(pswfits)
 im250phdu=hdulist[0].header
-im250hdu=hdulist[1].header
+im250hdu=hdulist['image'].header
 
-im250=hdulist[1].data*1.0E3 #convert to mJy
-nim250=hdulist[2].data*1.0E3 #convert to mJy
-w_250 = wcs.WCS(hdulist[1].header)
+im250=hdulist['image'].data*1.0E3 #convert to mJy
+nim250=hdulist['error'].data*1.0E3 #convert to mJy
+w_250 = wcs.WCS(hdulist['image'].header)
 pixsize250=3600.0*w_250.wcs.cd[1,1] #pixel size (in arcseconds)
 hdulist.close()
 #-----350-------------
 hdulist = fits.open(pmwfits)
 im350phdu=hdulist[0].header
-im350hdu=hdulist[1].header
+im350hdu=hdulist['image'].header
 
-im350=hdulist[1].data*1.0E3 #convert to mJy
-nim350=hdulist[2].data*1.0E3 #convert to mJy
-w_350 = wcs.WCS(hdulist[1].header)
+im350=hdulist['image'].data*1.0E3 #convert to mJy
+nim350=hdulist['error'].data*1.0E3 #convert to mJy
+w_350 = wcs.WCS(hdulist['image'].header)
 pixsize350=3600.0*w_350.wcs.cd[1,1] #pixel size (in arcseconds)
 hdulist.close()
 #-----500-------------
 hdulist = fits.open(plwfits)
 im500phdu=hdulist[0].header
-im500hdu=hdulist[1].header 
-im500=hdulist[1].data*1.0E3 #convert to mJy
-nim500=hdulist[2].data*1.0E3 #convert to mJy
-w_500 = wcs.WCS(hdulist[1].header)
+im500hdu=hdulist['image'].header 
+im500=hdulist['image'].data*1.0E3 #convert to mJy
+nim500=hdulist['error'].data*1.0E3 #convert to mJy
+w_500 = wcs.WCS(hdulist['image'].header)
 pixsize500=3600.0*w_500.wcs.cd[1,1] #pixel size (in arcseconds)
 hdulist.close()
 
@@ -235,7 +239,8 @@ import xidplus.catalogue as cat
 SPIRE_cat=cat.create_SPIRE_cat(posterior,priors[0],priors[1],priors[2])
 SPIRE_cat = Table.read(SPIRE_cat)
 
-mask = ['ILTJ' in SPIRE_cat['HELP_ID'][i] for i in range(len(SPIRE_cat))]
+#mask = ['ILTJ' in SPIRE_cat['HELP_ID'][i] for i in range(len(SPIRE_cat)) if SPIRE_cat['RA'][i] in ras]
+mask = [SPIRE_cat['HELP_ID'][i] in ids for i in range(len(SPIRE_cat))]
 SPIRE_cat = SPIRE_cat[mask]
 
 '''mask = SPIRE_cat['HELP_ID']=='lofar'

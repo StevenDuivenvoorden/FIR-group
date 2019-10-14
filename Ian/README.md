@@ -13,6 +13,7 @@ FIR-group University of Sussex
 - Potentially investigate seperating AGN and SFG using a combination of criteria (eg MagPhys, CiGALE, AGNfitter etc)
 
 #### Reading
-- HELP: Shirley et al in prep (emial raph for a draft copy) for masterlist creation, Duncan et al 2018 for photometric redshifts, Hurley et al 2017 for XID+, Malek et al 2018 for CIGALE.
+- HELP: Shirley et al in prep (email raph for a draft copy) for masterlist creation, Duncan et al 2018 for photometric redshifts, Hurley et al 2017 for XID+, Malek et al 2018 for CIGALE.
 - star formation: Casey et al 2014 for a review paper on dusty star forming galaxies, Krumholz et al 2014 for a general review on star formation
+- FIR astronomy: Oliver et al 2012 for a overview of the aims and problems of FIR astronomy and the Herschel telescope.
 - FIRC: Condon et al 1992 for a theoretical overview, Delhaize et al 2017 for redshift evolution of the FIRC in COSMOS.
