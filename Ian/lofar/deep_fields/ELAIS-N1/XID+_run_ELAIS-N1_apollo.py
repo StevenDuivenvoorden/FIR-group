@@ -55,7 +55,7 @@ if taskid*batch_size>len(lofar):
     sys.exit()
 ind_low = taskid*batch_size
 if taskid*batch_size+batch_size>len(lofar):
-    ind_up = len(lofar)-1
+    ind_up = len(lofar)
 else:
     ind_up = taskid*batch_size+batch_size
 ras = lofar['optRA'][ind_low:ind_up]
