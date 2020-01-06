@@ -40,9 +40,16 @@ taskid = np.int(os.environ['SGE_TASK_ID'])-1
 #taskid=3
 print('taskid is: {}'.format(taskid))
 
+#only here for rerunning EN1 with the updated catalogue
+lofar01 = Table.read('data/data_release/final_cross_match_catalogue-v0.1.fits')
+lofar05 = Table.read('data/data_release/final_cross_match_catalogue-v0.5.fits')
+new_x_old = join(lofar05,lofar01,join_type='left',keys='Source_Name')
+
+mask = new_x_old['optRA_1']==new_x_old['optRA_2']
+lofar = lofar05[~mask]
 
 #Read in the LOFAR data both optical and radio
-lofar = Table.read('data/data_release/final_cross_match_catalogue-v0.1.fits')
+#lofar = Table.read('data/data_release/final_cross_match_catalogue-v0.1.fits')
 mask = (~np.isnan(lofar['F_SPIRE_250'])) | (~np.isnan(lofar['F_SPIRE_350'])) | (~np.isnan(lofar['F_SPIRE_500']))
 lofar = lofar[~mask]
 
@@ -86,7 +93,7 @@ prior_cat = help_masterlist[prior_mask]
 for n,pos in enumerate(ras):
     prior_cat.add_row([ras[n],decs[n],ids[n],-99,np.nan])'''
 
-prior_cat = Table.read('data/data_release/xidplus_prior_cat.fits')
+prior_cat = Table.read('data/data_release/xidplus_prior_cat_rerun.fits')
 #xid_rerun = Column(name='XID_rerun',data=np.zeros(len(prior_cat))-99)
 #prior_cat.add_column(xid_rerun)
 
@@ -253,9 +260,9 @@ XID_rerun_col = Column(data=XID_rerun,name='XID_rerun',dtype=bool)
 source_type_col = Column(data=source_type,name='source_type',dtype=str)
 lofar_fir.add_columns([XID_rerun_col,source_type_col])'''
    
-if os.path.exists('data/fir_v2/xidplus_run_{}'.format(taskid))==True:()
+if os.path.exists('data/fir_v10/xidplus_run_{}'.format(taskid))==True:()
 else:
-    os.mkdir('data/fir_v2/xidplus_run_{}'.format(taskid))
-Table.write(SPIRE_cat,'data/fir_v2/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),overwrite=True)
+    os.mkdir('data/fir_v10/xidplus_run_{}'.format(taskid))
+Table.write(SPIRE_cat,'data/fir_v10/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),overwrite=True)
 
-xidplus.save([prior250,prior350,prior500],posterior,'data/fir_v2/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.pkl'.format(taskid,taskid))
+xidplus.save([prior250,prior350,prior500],posterior,'data/fir_v10/xidplus_run_{}/lofar_xidplus_fir_{}_rerun'.format(taskid,taskid))

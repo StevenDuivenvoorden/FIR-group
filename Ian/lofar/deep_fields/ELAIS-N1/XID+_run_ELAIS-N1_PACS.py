@@ -30,8 +30,15 @@ import xidplus.posterior_maps as postmaps
 from herschelhelp_internal.masterlist import merge_catalogues, nb_merge_dist_plot, specz_merge
 import pyvo as vo
 
+#only here for rerunning EN1 with the updated catalogue
+lofar01 = Table.read('data/data_release/final_cross_match_catalogue-v0.1.fits')
+lofar05 = Table.read('data/data_release/final_cross_match_catalogue-v0.5.fits')
+new_x_old = join(lofar05,lofar01,join_type='left',keys='Source_Name')
 
-lofar = Table.read('data/data_release/final_cross_match_catalogue-v0.1.fits')
+mask = new_x_old['optRA_1']==new_x_old['optRA_2']
+lofar = lofar05[~mask]
+
+#lofar = Table.read('data/data_release/final_cross_match_catalogue-v0.1.fits')
 mask = (~np.isnan(lofar['F_SPIRE_250'])) | (~np.isnan(lofar['F_SPIRE_350'])) | (~np.isnan(lofar['F_SPIRE_500']))
 lofar = lofar[~mask]
 
@@ -42,7 +49,7 @@ taskid = np.int(os.environ['SGE_TASK_ID'])-1
 #taskid=3
 print('taskid is: {}'.format(taskid))
 
-dir_list = glob.glob('data/fir_PACS/*')
+dir_list = glob.glob('data/fir_PACS_v10/*')
 num_done = []
 for folder in dir_list:
     num_done.append(int(folder.split('_')[-1]))
@@ -105,7 +112,7 @@ hdulist = fits.open(nim160fits)
 nim160=hdulist[0].data
 hdulist.close()
 
-prior_cat = Table.read('data/data_release/xidplus_prior_cat.fits')
+prior_cat = Table.read('data/data_release/xidplus_prior_cat_rerun.fits')
 
 from astropy.coordinates import SkyCoord
 from astropy import units as u
@@ -159,9 +166,9 @@ PACS_cat = Table.read(PACS_cat)
 mask = [PACS_cat['help_id'][i] in ids for i in range(len(PACS_cat))]
 PACS_cat = PACS_cat[mask]
 
-if os.path.exists('data/fir_PACS/xidplus_run_{}'.format(taskid))==True:()
+if os.path.exists('data/fir_PACS_v10/xidplus_run_{}'.format(taskid))==True:()
 else:
-    os.mkdir('data/fir_PACS/xidplus_run_{}'.format(taskid))
-Table.write(PACS_cat,'data/fir_PACS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),overwrite=True)
+    os.mkdir('data/fir_PACS_v10/xidplus_run_{}'.format(taskid))
+Table.write(PACS_cat,'data/fir_PACS_v10/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),overwrite=True)
 
-xidplus.save([prior100,prior160],posterior,'data/fir_PACS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.pkl'.format(taskid,taskid))
+xidplus.save([prior100,prior160],posterior,'data/fir_PACS_v10/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.pkl'.format(taskid,taskid))

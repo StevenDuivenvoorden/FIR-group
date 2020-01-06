@@ -31,14 +31,22 @@ import xidplus.posterior_maps as postmaps
 from herschelhelp_internal.masterlist import merge_catalogues, nb_merge_dist_plot, specz_merge
 import pyvo as vo
 
-lofar = Table.read('data/data_release/final_cross_match_catalogue-v0.1.fits')
+#only here for rerunning EN1 with the updated catalogue
+lofar01 = Table.read('data/data_release/final_cross_match_catalogue-v0.1.fits')
+lofar05 = Table.read('data/data_release/final_cross_match_catalogue-v0.5.fits')
+new_x_old = join(lofar05,lofar01,join_type='left',keys='Source_Name')
+
+mask = new_x_old['optRA_1']==new_x_old['optRA_2']
+lofar = lofar05[~mask]
+
+#lofar = Table.read('data/data_release/final_cross_match_catalogue-v0.1.fits')
 mask = (~np.isnan(lofar['F_MIPS_24'])) 
 lofar = lofar[~mask]
                         
 taskid = np.int(os.environ['SGE_TASK_ID'])-1
 print('taskid is: {}'.format(taskid))
 
-dir_list = glob.glob('data/fir_MIPS/*')
+dir_list = glob.glob('data/fir_MIPS_v10/*')
 num_done = []
 for folder in dir_list:
     num_done.append(int(folder.split('_')[-1]))
@@ -64,7 +72,7 @@ decs[mask] = lofar['DEC'][ind_low:ind_up][mask]
 
 ids = lofar['Source_Name'][ind_low:ind_up]
 
-prior_cat = Table.read('data/data_release/xidplus_prior_cat_MIPS.fits')
+prior_cat = Table.read('data/data_release/xidplus_prior_cat_MIPS_rerun.fits')
 MIPS_lower = prior_cat['MIPS_lower']
 MIPS_upper = prior_cat['MIPS_upper']
 
@@ -120,9 +128,9 @@ MIPS_cat = Table.read(MIPS_cat)
 mask = [MIPS_cat['help_id'][i] in ids for i in range(len(MIPS_cat))]
 MIPS_cat = MIPS_cat[mask]
 
-if os.path.exists('data/fir_MIPS/xidplus_run_{}'.format(taskid))==True:()
+if os.path.exists('data/fir_MIPS_v10/xidplus_run_{}'.format(taskid))==True:()
 else:
-    os.mkdir('data/fir_MIPS/xidplus_run_{}'.format(taskid))
-Table.write(MIPS_cat,'data/fir_MIPS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),overwrite=True)
+    os.mkdir('data/fir_MIPS_v10/xidplus_run_{}'.format(taskid))
+Table.write(MIPS_cat,'data/fir_MIPS_v10/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),overwrite=True)
 
-xidplus.save([prior250],posterior,'data/fir_MIPS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.pkl'.format(taskid,taskid))
+xidplus.save([prior250],posterior,'data/fir_MIPS_v10/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.pkl'.format(taskid,taskid))
