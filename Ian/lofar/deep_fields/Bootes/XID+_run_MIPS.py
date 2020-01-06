@@ -31,27 +31,20 @@ import xidplus.posterior_maps as postmaps
 from herschelhelp_internal.masterlist import merge_catalogues, nb_merge_dist_plot, specz_merge
 import pyvo as vo
 
-#only here for rerunning EN1 with the updated catalogue
-lofar01 = Table.read('data/data_release/final_cross_match_catalogue-v0.1.fits')
-lofar05 = Table.read('data/data_release/final_cross_match_catalogue-v0.5.fits')
-new_x_old = join(lofar05,lofar01,join_type='left',keys='Source_Name')
 
-mask = new_x_old['optRA_1']==new_x_old['optRA_2']
-lofar = lofar05[~mask]
-
-#lofar = Table.read('data/data_release/final_cross_match_catalogue-v0.1.fits')
+lofar = Table.read('data/data_release/final_cross_match_catalogue-v0.5.fits')
 mask = (~np.isnan(lofar['F_MIPS_24'])) 
 lofar = lofar[~mask]
                         
 taskid = np.int(os.environ['SGE_TASK_ID'])-1
 print('taskid is: {}'.format(taskid))
 
-dir_list = glob.glob('data/fir_MIPS_v10/*')
+'''dir_list = glob.glob('data/fir/MIPS/*')
 num_done = []
 for folder in dir_list:
     num_done.append(int(folder.split('_')[-1]))
 if taskid in num_done:
-    sys.exit()
+    sys.exit()'''
 
 batch_size = 100
 if taskid*batch_size>len(lofar):
@@ -72,6 +65,7 @@ decs[mask] = lofar['DEC'][ind_low:ind_up][mask]
 
 ids = lofar['Source_Name'][ind_low:ind_up]
 
+print('reading in prior cat')
 prior_cat = Table.read('data/data_release/xidplus_prior_cat_MIPS_rerun.fits')
 MIPS_lower = prior_cat['MIPS_lower']
 MIPS_upper = prior_cat['MIPS_upper']
@@ -80,14 +74,15 @@ from astropy.coordinates import SkyCoord
 from astropy import units as u
 c = SkyCoord(ra=ras*u.degree, dec=decs*u.degree)  
 import pymoc
-moc=pymoc.util.catalog.catalog_to_moc(c,15,15)
+moc=pymoc.util.catalog.catalog_to_moc(c,30,15)
 
 
 #Read in the herschel images
-imfolder='../../../../../HELP/dmu_products/dmu17/dmu17_HELP_Legacy_maps/ELAIS-N1/data/'
+imfolder='../../../../../HELP/dmu_products/dmu17/dmu17_HELP_Legacy_maps/Bootes/data/'
 
-pswfits=imfolder+'wp4_elais-n1_mips24_map_v1.0.fits.gz'#SPIRE 250 map
+pswfits=imfolder+'wp4_bootes_mips24_map_v1.0.fits.gz'#SPIRE 250 map
 
+print('reading in MIPS map')
 MIPS_Map = fits.open(pswfits)
 
 #-----250-------------
@@ -100,10 +95,11 @@ nim250=hdulist[2].data*1.0E3 #convert to mJy
 w_250 = wcs.WCS(hdulist[1].header)
 hdulist.close()
 
-MIPS_psf=fits.open(imfolder+'dmu17_MIPS_PSF_ELAIS-N1_20170629.fits')
+MIPS_psf=fits.open(imfolder+'dmu17_MIPS_PSF_Bootes_20180129.fits')
 
 
 #---prior250--------
+print('creating prior')
 prior250=xidplus.prior(im250,nim250,im250phdu,im250hdu, moc=moc)#Initialise with map, uncertianty map, wcs info and primary header
 prior250.prior_cat(prior_cat['ra'],prior_cat['dec'],'prior_cat',flux_lower=MIPS_lower,flux_upper=MIPS_upper,ID=prior_cat['help_id'])#Set input catalogue
 prior250.prior_bkg(-5.0,5)#Set prior on background (assumes Gaussian pdf with mu and sigma)
@@ -128,9 +124,9 @@ MIPS_cat = Table.read(MIPS_cat)
 mask = [MIPS_cat['help_id'][i] in ids for i in range(len(MIPS_cat))]
 MIPS_cat = MIPS_cat[mask]
 
-if os.path.exists('data/fir_MIPS_v10/xidplus_run_{}'.format(taskid))==True:()
+if os.path.exists('data/fir/MIPS/xidplus_run_{}'.format(taskid))==True:()
 else:
-    os.mkdir('data/fir_MIPS_v10/xidplus_run_{}'.format(taskid))
-Table.write(MIPS_cat,'data/fir_MIPS_v10/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),overwrite=True)
+    os.mkdir('data/fir/MIPS/xidplus_run_{}'.format(taskid))
+Table.write(MIPS_cat,'data/fir/MIPS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),overwrite=True)
 
-xidplus.save([prior250],posterior,'data/fir_MIPS_v10/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.pkl'.format(taskid,taskid))
+xidplus.save([prior250],posterior,'data/fir/MIPS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.pkl'.format(taskid,taskid))
