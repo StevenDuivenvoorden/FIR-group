@@ -137,8 +137,6 @@ prior160.set_prf(pacs160_psf[1].data[centre160-radius160:centre160+radius160+1,c
 prior100.get_pointing_matrix()
 prior160.get_pointing_matrix()
 
-prior100.upper_lim_map()
-prior160.upper_lim_map()
 
 from xidplus.stan_fit import PACS
 fit=PACS.all_bands(prior100,prior160,iter=1000)

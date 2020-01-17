@@ -30,15 +30,13 @@ import xidplus.posterior_maps as postmaps
 from herschelhelp_internal.masterlist import merge_catalogues, nb_merge_dist_plot, specz_merge
 import pyvo as vo
 
-#only here for rerunning EN1 with the updated catalogue
-lofar01 = Table.read('data/data_release/final_cross_match_catalogue-v0.1.fits')
-lofar05 = Table.read('data/data_release/final_cross_match_catalogue-v0.5.fits')
-new_x_old = join(lofar05,lofar01,join_type='left',keys='Source_Name')
+#imported to be able to write tables while astropy is broken
+from astropy.io import registry
+from astropy.table.info import serialize_method_as
 
-mask = new_x_old['optRA_1']==new_x_old['optRA_2']
-lofar = lofar05[~mask]
 
-#lofar = Table.read('data/data_release/final_cross_match_catalogue-v0.1.fits')
+
+lofar = Table.read('data/data_release/final_cross_match_catalogue-v0.5.fits')
 mask = (~np.isnan(lofar['F_SPIRE_250'])) | (~np.isnan(lofar['F_SPIRE_350'])) | (~np.isnan(lofar['F_SPIRE_500']))
 lofar = lofar[~mask]
 
@@ -48,13 +46,6 @@ print(len(lofar))
 taskid = np.int(os.environ['SGE_TASK_ID'])-1
 #taskid=3
 print('taskid is: {}'.format(taskid))
-
-dir_list = glob.glob('data/fir_PACS_v10/*')
-num_done = []
-for folder in dir_list:
-    num_done.append(int(folder.split('_')[-1]))
-if taskid in num_done:
-    sys.exit()
 
 batch_size = 20
 
@@ -76,7 +67,7 @@ decs[mask] = lofar['DEC'][ind_low:ind_up][mask]
 
 ids = lofar['Source_Name'][ind_low:ind_up]
 
-
+print('number of sources is: {}'.format(len(ras)))
 
 imfolder='../../../../../HELP/dmu_products/dmu18/dmu18_ELAIS-N1/data/'
 
@@ -112,7 +103,7 @@ hdulist = fits.open(nim160fits)
 nim160=hdulist[0].data
 hdulist.close()
 
-prior_cat = Table.read('data/data_release/xidplus_prior_cat_rerun.fits')
+prior_cat = Table.read('data/data_release/xidplus_prior_cat.fits')
 
 from astropy.coordinates import SkyCoord
 from astropy import units as u
@@ -149,9 +140,6 @@ prior160.set_prf(pacs160_psf[1].data[centre160-radius160:centre160+radius160+1,c
 prior100.get_pointing_matrix()
 prior160.get_pointing_matrix()
 
-prior100.upper_lim_map()
-prior160.upper_lim_map()
-
 from xidplus.stan_fit import PACS
 fit=PACS.all_bands(prior100,prior160,iter=1000)
 
@@ -166,9 +154,13 @@ PACS_cat = Table.read(PACS_cat)
 mask = [PACS_cat['help_id'][i] in ids for i in range(len(PACS_cat))]
 PACS_cat = PACS_cat[mask]
 
-if os.path.exists('data/fir_PACS_v10/xidplus_run_{}'.format(taskid))==True:()
+if os.path.exists('data/fir/PACS/xidplus_run_{}'.format(taskid))==True:()
 else:
-    os.mkdir('data/fir_PACS_v10/xidplus_run_{}'.format(taskid))
-Table.write(PACS_cat,'data/fir_PACS_v10/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),overwrite=True)
+    os.mkdir('data/fir/PACS/xidplus_run_{}'.format(taskid))
 
-xidplus.save([prior100,prior160],posterior,'data/fir_PACS_v10/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.pkl'.format(taskid,taskid))
+#the next couple of lines are an alternative way to save astropy table since the Table.write method is currently broken
+with serialize_method_as(test, None):
+            registry.write(PACS_cat,'data/fir/PACS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),format='fits')
+#Table.write(PACS_cat,'data/fir/PACS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),format='fits',overwrite=True)
+
+xidplus.save([prior100,prior160],posterior,'data/fir/PACS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.pkl'.format(taskid,taskid))

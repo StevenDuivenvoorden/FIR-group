@@ -31,6 +31,8 @@ import xidplus.posterior_maps as postmaps
 from herschelhelp_internal.masterlist import merge_catalogues, nb_merge_dist_plot, specz_merge
 import pyvo as vo
 
+from astropy.io import registry
+from astropy.table.info import serialize_method_as
 
 lofar = Table.read('data/data_release/final_cross_match_catalogue-v0.5.fits')
 mask = (~np.isnan(lofar['F_MIPS_24'])) 
@@ -90,8 +92,8 @@ hdulist = fits.open(pswfits)
 im250phdu=hdulist[0].header
 im250hdu=hdulist[1].header
 
-im250=hdulist[1].data*1.0E3 #convert to mJy
-nim250=hdulist[2].data*1.0E3 #convert to mJy
+im250=hdulist[1].data #convert to mJy
+nim250=hdulist[2].data #convert to mJy
 w_250 = wcs.WCS(hdulist[1].header)
 hdulist.close()
 
@@ -109,7 +111,7 @@ radius=20
 prior250.set_prf(MIPS_psf[1].data[centre-radius:centre+radius+1,centre-radius:centre+radius+1]/1.0E6,np.arange(0,41/2.0,0.5),np.arange(0,41/2.0,0.5))#requires PRF as 2d grid, and x and y bins for grid (in pixel scale)
 
 prior250.get_pointing_matrix()
-prior250.upper_lim_map()
+
 
 from xidplus.stan_fit import MIPS,SPIRE
 fit=MIPS.MIPS_24(prior250,iter=1000)
@@ -127,6 +129,10 @@ MIPS_cat = MIPS_cat[mask]
 if os.path.exists('data/fir/MIPS/xidplus_run_{}'.format(taskid))==True:()
 else:
     os.mkdir('data/fir/MIPS/xidplus_run_{}'.format(taskid))
-Table.write(MIPS_cat,'data/fir/MIPS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),overwrite=True)
+
+#the next couple of lines are an alternative way to save astropy table since the Table.write method is currently broken
+with serialize_method_as(test, None):
+            registry.write(MIPS_cat,'data/fir/MIPS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),format='fits')    
+#Table.write(MIPS_cat,'data/fir/MIPS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),overwrite=True)
 
 xidplus.save([prior250],posterior,'data/fir/MIPS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.pkl'.format(taskid,taskid))

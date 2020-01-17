@@ -31,27 +31,18 @@ import xidplus.posterior_maps as postmaps
 from herschelhelp_internal.masterlist import merge_catalogues, nb_merge_dist_plot, specz_merge
 import pyvo as vo
 
-#only here for rerunning EN1 with the updated catalogue
-lofar01 = Table.read('data/data_release/final_cross_match_catalogue-v0.1.fits')
-lofar05 = Table.read('data/data_release/final_cross_match_catalogue-v0.5.fits')
-new_x_old = join(lofar05,lofar01,join_type='left',keys='Source_Name')
+#imported to be able to write tables while astropy is broken
+from astropy.io import registry
+from astropy.table.info import serialize_method_as
 
-mask = new_x_old['optRA_1']==new_x_old['optRA_2']
-lofar = lofar05[~mask]
 
-#lofar = Table.read('data/data_release/final_cross_match_catalogue-v0.1.fits')
+
+lofar = Table.read('data/data_release/final_cross_match_catalogue-v0.5.fits')
 mask = (~np.isnan(lofar['F_MIPS_24'])) 
 lofar = lofar[~mask]
                         
 taskid = np.int(os.environ['SGE_TASK_ID'])-1
 print('taskid is: {}'.format(taskid))
-
-dir_list = glob.glob('data/fir_MIPS_v10/*')
-num_done = []
-for folder in dir_list:
-    num_done.append(int(folder.split('_')[-1]))
-if taskid in num_done:
-    sys.exit()
 
 batch_size = 100
 if taskid*batch_size>len(lofar):
@@ -72,7 +63,7 @@ decs[mask] = lofar['DEC'][ind_low:ind_up][mask]
 
 ids = lofar['Source_Name'][ind_low:ind_up]
 
-prior_cat = Table.read('data/data_release/xidplus_prior_cat_MIPS_rerun.fits')
+prior_cat = Table.read('data/data_release/xidplus_prior_cat_MIPS.fits')
 MIPS_lower = prior_cat['MIPS_lower']
 MIPS_upper = prior_cat['MIPS_upper']
 
@@ -80,7 +71,7 @@ from astropy.coordinates import SkyCoord
 from astropy import units as u
 c = SkyCoord(ra=ras*u.degree, dec=decs*u.degree)  
 import pymoc
-moc=pymoc.util.catalog.catalog_to_moc(c,15,15)
+moc=pymoc.util.catalog.catalog_to_moc(c,30,15)
 
 
 #Read in the herschel images
@@ -95,8 +86,8 @@ hdulist = fits.open(pswfits)
 im250phdu=hdulist[0].header
 im250hdu=hdulist[1].header
 
-im250=hdulist[1].data*1.0E3 #convert to mJy
-nim250=hdulist[2].data*1.0E3 #convert to mJy
+im250=hdulist[1].data #convert to mJy
+nim250=hdulist[2].data #convert to mJy
 w_250 = wcs.WCS(hdulist[1].header)
 hdulist.close()
 
@@ -113,7 +104,7 @@ radius=20
 prior250.set_prf(MIPS_psf[1].data[centre-radius:centre+radius+1,centre-radius:centre+radius+1]/1.0E6,np.arange(0,41/2.0,0.5),np.arange(0,41/2.0,0.5))#requires PRF as 2d grid, and x and y bins for grid (in pixel scale)
 
 prior250.get_pointing_matrix()
-prior250.upper_lim_map()
+#prior250.upper_lim_map()
 
 from xidplus.stan_fit import MIPS,SPIRE
 fit=MIPS.MIPS_24(prior250,iter=1000)
@@ -128,9 +119,13 @@ MIPS_cat = Table.read(MIPS_cat)
 mask = [MIPS_cat['help_id'][i] in ids for i in range(len(MIPS_cat))]
 MIPS_cat = MIPS_cat[mask]
 
-if os.path.exists('data/fir_MIPS_v10/xidplus_run_{}'.format(taskid))==True:()
+if os.path.exists('data/fir/MIPS/xidplus_run_{}'.format(taskid))==True:()
 else:
-    os.mkdir('data/fir_MIPS_v10/xidplus_run_{}'.format(taskid))
-Table.write(MIPS_cat,'data/fir_MIPS_v10/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),overwrite=True)
+    os.mkdir('data/fir/MIPS/xidplus_run_{}'.format(taskid))
 
-xidplus.save([prior250],posterior,'data/fir_MIPS_v10/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.pkl'.format(taskid,taskid))
+#the next couple of lines are an alternative way to save astropy table since the Table.write method is currently broken
+with serialize_method_as(MIPS_cat, None):
+            registry.write(MIPS_cat,'data/fir/MIPS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),format='fits')
+#Table.write(MIPS_cat,'data/fir/MIPS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),overwrite=True)
+
+xidplus.save([prior250],posterior,'data/fir/MIPS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.pkl'.format(taskid,taskid))
