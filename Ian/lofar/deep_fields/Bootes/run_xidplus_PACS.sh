@@ -3,8 +3,8 @@
 
 #$ -cwd
 
-#$ -o /lustre/scratch/astro/im281/FIR-group/Ian/lofar/deep_fields/Bootes/log/out
-#$ -e /lustre/scratch/astro/im281/FIR-group/Ian/lofar/deep_fields/Bootes/log/err
+#$ -o /lustre/scratch/astro/im281/FIR-group/Ian/lofar/deep_fields/Bootes/log/
+#$ -e /lustre/scratch/astro/im281/FIR-group/Ian/lofar/deep_fields/Bootes/log/
 
 # sumbit with the following command
 # qsub -t 1-10 -l m_mem_free=20G run_xidplus_elais_n1.sh

@@ -48,7 +48,7 @@ for folder in dir_list:
 if taskid in num_done:
     sys.exit()'''
 
-batch_size = 100
+batch_size = 50
 if taskid*batch_size>len(lofar):
     print('Task id is too high. Trying to run code on more sources than exist')
     sys.exit()
@@ -129,10 +129,12 @@ MIPS_cat = MIPS_cat[mask]
 if os.path.exists('data/fir/MIPS/xidplus_run_{}'.format(taskid))==True:()
 else:
     os.mkdir('data/fir/MIPS/xidplus_run_{}'.format(taskid))
+    
+xidplus.save([prior250],posterior,'data/fir/MIPS/xidplus_run_{}/lofar_xidplus_fir_{}'.format(taskid,taskid))
 
 #the next couple of lines are an alternative way to save astropy table since the Table.write method is currently broken
-with serialize_method_as(test, None):
-            registry.write(MIPS_cat,'data/fir/MIPS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),format='fits')    
+with serialize_method_as(MIPS_cat, None):
+            registry.write(MIPS_cat,'data/fir/MIPS/xidplus_run_{}/lofar_xidplus_fir_{}.fits'.format(taskid,taskid),format='fits')    
 #Table.write(MIPS_cat,'data/fir/MIPS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),overwrite=True)
 
-xidplus.save([prior250],posterior,'data/fir/MIPS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.pkl'.format(taskid,taskid))
+

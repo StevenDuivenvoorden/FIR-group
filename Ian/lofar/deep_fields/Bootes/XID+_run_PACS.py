@@ -72,35 +72,36 @@ decs[mask] = lofar['DEC'][ind_low:ind_up][mask]
 
 ids = lofar['Source_Name'][ind_low:ind_up]
 
-
+print('number of sources is: {}'.format(len(ras)))
 
 imfolder='../../../../../HELP/dmu_products/dmu18/dmu18_HELP-PACS-maps/data/'
 
 im100fits=imfolder + 'Bootes_PACS100_v0.9.fits'#PACS 100 map
 im160fits=imfolder + 'Bootes_PACS160_v0.9.fits'#PACS 160 map
 
-
 #-----100-------------
 hdulist = fits.open(im100fits)
-im100phdu=hdulist[0].header
-im100hdu=hdulist['image'].header
-im100=hdulist['image'].data
-w_100 = wcs.WCS(hdulist['image'].header)
-pixsize100=3600.0*np.abs(hdulist['image'].header['CDELT1']) #pixel size (in arcseconds)
+im100phdu=hdulist['PRIMARY'].header
+im100=hdulist['IMAGE'].data*2.35045e-5*(np.abs(hdulist[1].header['CDELT1'])*3600)**2
+hdulist['IMAGE'].header['BUNIT']='Jy/pix'
+im100hdu=hdulist['IMAGE'].header
 
-nim100=hdulist['error'].data
+w_100 = wcs.WCS(hdulist['IMAGE'].header)
+pixsize100=3600.0*np.abs(hdulist['IMAGE'].header['CDELT1']) #pixel size (in arcseconds)
+nim100=hdulist['ERROR'].data*2.35045e-5*(np.abs(hdulist[1].header['CDELT1'])*3600)**2
+
 hdulist.close()
 
 #-----160-------------
 hdulist = fits.open(im160fits)
-im160phdu=hdulist[0].header
-im160hdu=hdulist['image'].header
+im160phdu=hdulist['PRIMARY'].header
+im160=hdulist['IMAGE'].data*2.35045e-5*(np.abs(hdulist[1].header['CDELT1'])*3600)**2
+hdulist['IMAGE'].header['BUNIT']='Jy/pix'
+im160hdu=hdulist['IMAGE'].header
 
-im160=hdulist['image'].data #convert to mJy
-w_160 = wcs.WCS(hdulist['image'].header)
-pixsize160=3600.0*np.abs(hdulist['image'].header['CDELT1']) #pixel size (in arcseconds)
-
-nim160=hdulist['error'].data
+w_160 = wcs.WCS(hdulist['IMAGE'].header)
+pixsize160=3600.0*np.abs(hdulist['IMAGE'].header['CDELT1']) #pixel size (in arcseconds)
+nim160=hdulist['ERROR'].data*2.35045e-5*(np.abs(hdulist[1].header['CDELT1'])*3600)**2
 hdulist.close()
 
 prior_cat = Table.read('data/data_release/xidplus_prior_cat_rerun_mips.fits')
@@ -124,13 +125,16 @@ prior160.prior_bkg(0.0,5)
 pacs100_psf=fits.open('../../../../../HELP/dmu_products/dmu18/dmu18_Bootes/data/dmu18_PACS_100_PSF_Bootes_20190125.fits')
 pacs160_psf=fits.open('../../../../../HELP/dmu_products/dmu18/dmu18_Bootes/data/dmu18_PACS_160_PSF_Bootes_20190125.fits')
 
+
+print (pacs100_psf)
 centre100=np.long((pacs100_psf[1].header['NAXIS1']-1)/2)
 radius100=15
 centre160=np.long((pacs160_psf[1].header['NAXIS1']-1)/2)
-radius160=25
+radius160=15
 
 pind100=np.arange(0,radius100+1+radius100,1)*3600*np.abs(pacs100_psf[1].header['CDELT1'])/pixsize100 #get 100 scale in terms of pixel scale of map
 pind160=np.arange(0,radius160+1+radius160,1)*3600*np.abs(pacs160_psf[1].header['CDELT1'])/pixsize160 #get 160 scale in terms of pixel scale of map
+
 
 prior100.set_prf(pacs100_psf[1].data[centre100-radius100:centre100+radius100+1,centre100-radius100:centre100+radius100+1]/1000.0,
                 pind100,pind100)
@@ -158,9 +162,9 @@ PACS_cat = PACS_cat[mask]
 if os.path.exists('data/fir/PACS/xidplus_run_{}'.format(taskid))==True:()
 else:
     os.mkdir('data/fir/PACS/xidplus_run_{}'.format(taskid))
-xidplus.save([prior100,prior160],posterior,'data/fir/PACS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.pkl'.format(taskid,taskid))
+xidplus.save([prior100,prior160],posterior,'data/fir/PACS/xidplus_run_{}/lofar_xidplus_fir_{}'.format(taskid,taskid))
 #the next couple of lines are an alternative way to save astropy table since the Table.write method is currently broken
 with serialize_method_as(PACS_cat, None):
-            registry.write(PACS_cat,'data/fir/PACS/xidplus_run_{}/lofar_xidplus_fir_{}.fits'.format(taskid,taskid),format='fits')    
+            registry.write(PACS_cat,'data/fir/PACS/xidplus_run_{}/lofar_xidplus_fir_{}.fits'.format(taskid,taskid),format='fits',overwrite=True)    
 #Table.write(PACS_cat,'data/fir/PACS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),overwrite=True)
 

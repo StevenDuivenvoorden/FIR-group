@@ -35,6 +35,9 @@ from herschelhelp_internal.masterlist import merge_catalogues, nb_merge_dist_plo
 import pyvo as vo
 from herschelhelp_internal.utils import inMoc
 
+#from astropy.io import registry
+#from astropy.table.info import serialize_method_as
+
 print('finished importing modules')
 
 
@@ -176,9 +179,13 @@ SPIRE_cat = SPIRE_cat[mask]
 if os.path.exists('data/fir/SPIRE/xidplus_run_{}'.format(taskid))==True:()
 else:
     os.mkdir('data/fir/SPIRE/xidplus_run_{}'.format(taskid))
-Table.write(SPIRE_cat,'data/fir/SPIRE/xidplus_run_{}/lofar_xidplus_fir_{}.fits'.format(taskid,taskid),overwrite=True)
+    
+xidplus.save([prior250,prior350,prior500],posterior,'data/fir/SPIRE/xidplus_run_{}/lofar_xidplus_fir_{}'.format(taskid,taskid))
 
-xidplus.save([prior250,prior350,prior500],posterior,'data/fir/SPIRE/xidplus_run_{}/lofar_xidplus_fir_{}_rerun'.format(taskid,taskid))
+#the next couple of lines are an alternative way to save astropy table since the Table.write method is currently broken
+#with serialize_method_as(SPIRE_cat, None):
+           # registry.write(SPIRE_cat,'data/fir/SPIRE/xidplus_run_{}/lofar_xidplus_fir_{}.fits'.format(taskid,taskid),format='fits')
+Table.write(SPIRE_cat,'data/fir/SPIRE/xidplus_run_{}/lofar_xidplus_fir_{}.fits'.format(taskid,taskid),overwrite=True)
 
 time1 = time.time()
 print('total time taken = {}'.format(time1-time0))

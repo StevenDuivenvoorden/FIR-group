@@ -31,6 +31,9 @@ import xidplus.posterior_maps as postmaps
 from herschelhelp_internal.masterlist import merge_catalogues, nb_merge_dist_plot, specz_merge
 import pyvo as vo
 
+#from astropy.io import registry
+#from astropy.table.info import serialize_method_as
+
 
 lofar = Table.read('data/data_release/final_cross_match_catalogue-v0.5.fits')
 mask = (~np.isnan(lofar['F_MIPS_24'])) 
@@ -44,9 +47,10 @@ num_done = []
 for folder in dir_list:
     num_done.append(int(folder.split('_')[-1]))
 if taskid in num_done:
+    print('taskid already done')
     sys.exit()'''
 
-batch_size = 100
+batch_size = 20
 if taskid*batch_size>len(lofar):
     print('Task id is too high. Trying to run code on more sources than exist')
     sys.exit()
@@ -74,7 +78,7 @@ from astropy.coordinates import SkyCoord
 from astropy import units as u
 c = SkyCoord(ra=ras*u.degree, dec=decs*u.degree)  
 import pymoc
-moc=pymoc.util.catalog.catalog_to_moc(c,30,15)
+moc=pymoc.util.catalog.catalog_to_moc(c,20,15)
 
 
 #Read in the herschel images
@@ -127,6 +131,12 @@ MIPS_cat = MIPS_cat[mask]
 if os.path.exists('data/fir/MIPS/xidplus_run_{}'.format(taskid))==True:()
 else:
     os.mkdir('data/fir/MIPS/xidplus_run_{}'.format(taskid))
+    
+xidplus.save([prior250],posterior,'data/fir/MIPS/xidplus_run_{}/lofar_xidplus_fir_{}'.format(taskid,taskid))
+
+#the next couple of lines are an alternative way to save astropy table since the Table.write method is currently broken
+#with serialize_method_as(MIPS_cat, None):
+#            registry.write(MIPS_cat,'data/fir/MIPS/xidplus_run_{}/lofar_xidplus_fir_{}.fits'.format(taskid,taskid),format='fits') 
 Table.write(MIPS_cat,'data/fir/MIPS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),overwrite=True)
 
-xidplus.save([prior250],posterior,'data/fir/MIPS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.pkl'.format(taskid,taskid))
+

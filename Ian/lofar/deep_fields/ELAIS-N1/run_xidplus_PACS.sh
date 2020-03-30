@@ -17,7 +17,7 @@ module load python/intelpython3/3.5.3
 #module load Anaconda3/4.0.0
 
 #source activate /its/home/im281/.conda/envs/herschelhelp
-source activate hhelp
+source activate herschelhelp
 
 cd /lustre/scratch/astro/im281/FIR-group/Ian/lofar/deep_fields/ELAIS-N1
 
