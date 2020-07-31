@@ -49,6 +49,9 @@ lofar = Table.read('data/data_release/final_cross_match_catalogue-v0.5.fits')
 mask = (~np.isnan(lofar['F_SPIRE_250'])) | (~np.isnan(lofar['F_SPIRE_350'])) | (~np.isnan(lofar['F_SPIRE_500']))
 lofar = lofar[~mask]
 
+#remove if not running just the changed sources between v0.6 and v0.7
+lofar = Table.read('data/data_release/EN1_v0.6_v0.7_changedIDs.fits')
+
 print(len(lofar))
 
 batch_size = 20
@@ -73,6 +76,7 @@ ids = lofar['Source_Name'][ind_low:ind_up]
 
 
 prior_cat = Table.read('data/data_release/xidplus_prior_cat.fits')
+prior_cat = Table.read('data/data_release/xidplus_prior_cat_v0_7.fits')
 
 
 #Read in the herschel images
@@ -180,14 +184,14 @@ mask = [SPIRE_cat['HELP_ID'][i] in ids for i in range(len(SPIRE_cat))]
 SPIRE_cat = SPIRE_cat[mask]
 
    
-if os.path.exists('data/fir/SPIRE/xidplus_run_{}'.format(taskid))==True:()
+if os.path.exists('data/fir/v0_7/SPIRE/xidplus_run_{}'.format(taskid))==True:()
 else:
-    os.mkdir('data/fir/SPIRE/xidplus_run_{}'.format(taskid))
+    os.mkdir('data/fir/v0_7/SPIRE/xidplus_run_{}'.format(taskid))
 
-xidplus.save([prior250,prior350,prior500],posterior,'data/fir/SPIRE/xidplus_run_{}/lofar_xidplus_fir_{}_rerun'.format(taskid,taskid))
+xidplus.save([prior250,prior350,prior500],posterior,'data/fir/v0_7/SPIRE/xidplus_run_{}/lofar_xidplus_fir_{}_rerun'.format(taskid,taskid))
 #the next couple of lines are an alternative way to save astropy table since the Table.write method is currently broken
-with serialize_method_as(test, None):
-            registry.write(SPIRE_cat,'data/fir/SPIRE/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),format='fits')
+with serialize_method_as(SPIRE_cat, None):
+            registry.write(SPIRE_cat,'data/fir/v0_7/SPIRE/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),format='fits',overwrite=True)
 #Table.write(SPIRE_cat,'data/fir/SPIRE/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),format='fits',overwrite=True)
 
 

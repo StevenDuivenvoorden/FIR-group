@@ -25,7 +25,7 @@ cd /lustre/scratch/astro/im281/FIR-group/Ian/lofar/deep_fields/ELAIS-N1
 
 
 echo running_python
-python XID+_run_SPIRE_no_HELP.py
+python XID+_run_SPIRE.py
 #/its/home/im281/.conda/envs/herschelhelp/bin/python3.6 XID+_run_SPIRE.py
 
 echo finished

@@ -30,13 +30,16 @@ import xidplus.posterior_maps as postmaps
 from herschelhelp_internal.masterlist import merge_catalogues, nb_merge_dist_plot, specz_merge
 import pyvo as vo
 
-#from astropy.io import registry
-#from astropy.table.info import serialize_method_as
+from astropy.io import registry
+from astropy.table.info import serialize_method_as
 
 
 lofar = Table.read('data/data_release/final_cross_match_catalogue-v0.5.fits')
 mask = (~np.isnan(lofar['F_SPIRE_250'])) | (~np.isnan(lofar['F_SPIRE_350'])) | (~np.isnan(lofar['F_SPIRE_500']))
 lofar = lofar[~mask]
+
+#remove if not running just the changed sources between v0.6 and v0.7
+lofar = Table.read('data/data_release/Lockman_v0.6_v0.7_changedIDs.fits')
 
 print(len(lofar))   
 
@@ -72,6 +75,8 @@ decs[mask] = lofar['DEC'][ind_low:ind_up][mask]
 
 ids = lofar['Source_Name'][ind_low:ind_up]
 
+print(ids)
+
 print('loading map')
 
 imfolder='../../../../../HELP/dmu_products/dmu18/dmu18_HELP-PACS-maps/data/'
@@ -103,7 +108,8 @@ pixsize160=3600.0*np.abs(hdulist['image'].header['CDELT1']) #pixel size (in arcs
 nim160=hdulist['error'].data
 hdulist.close()
 
-prior_cat = Table.read('data/data_release/xidplus_prior_cat_rerun_mips.fits')
+#prior_cat = Table.read('data/data_release/xidplus_prior_cat_rerun_mips.fits')
+prior_cat = Table.read('data/data_release/xidplus_prior_cat_v0_7.fits')
 
 from astropy.coordinates import SkyCoord
 from astropy import units as u
@@ -156,13 +162,13 @@ PACS_cat = Table.read(PACS_cat)
 mask = [PACS_cat['help_id'][i] in ids for i in range(len(PACS_cat))]
 PACS_cat = PACS_cat[mask]
 
-if os.path.exists('data/fir/PACS/xidplus_run_{}'.format(taskid))==True:()
+if os.path.exists('data/fir/v0_7/PACS/xidplus_run_{}'.format(taskid))==True:()
 else:
-    os.mkdir('data/fir/PACS/xidplus_run_{}'.format(taskid))
+    os.mkdir('data/fir/v0_7/PACS/xidplus_run_{}'.format(taskid))
     
-xidplus.save([prior100,prior160],posterior,'data/fir/PACS/xidplus_run_{}/lofar_xidplus_fir_{}'.format(taskid,taskid))
+xidplus.save([prior100,prior160],posterior,'data/fir/v0_7/PACS/xidplus_run_{}/lofar_xidplus_fir_{}'.format(taskid,taskid))
 
 #the next couple of lines are an alternative way to save astropy table since the Table.write method is currently broken
-#with serialize_method_as(PACS_cat, None):
-#            registry.write(PACS_cat,'data/fir/PACS/xidplus_run_{}/lofar_xidplus_fir_{}.fits'.format(taskid,taskid),format='fits')
-Table.write(PACS_cat,'data/fir/PACS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),overwrite=True)
+with serialize_method_as(PACS_cat, None):
+    registry.write(PACS_cat,'data/fir/v0_7/PACS/xidplus_run_{}/lofar_xidplus_fir_{}.fits'.format(taskid,taskid),format='fits',overwrite=True)
+#Table.write(PACS_cat,'data/fir/v0_7/PACS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),overwrite=True)

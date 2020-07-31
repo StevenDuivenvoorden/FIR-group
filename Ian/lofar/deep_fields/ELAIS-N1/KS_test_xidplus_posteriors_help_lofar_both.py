@@ -190,13 +190,20 @@ else:
 
 ras = lofar['optRA'][ind_low:ind_up]
 mask = np.isnan(ras)
-ras[mask] = lofar['RA'][mask][ind_low:ind_up]
+ras[mask] = lofar['RA'][ind_low:ind_up][mask]
 
 decs = lofar['optDec'][ind_low:ind_up]
 mask = np.isnan(decs)
-decs[mask] = lofar['DEC'][mask][ind_low:ind_up]
+decs[mask] = lofar['DEC'][ind_low:ind_up][mask]
 
 ids_centre = lofar['Source_Name'][ind_low:ind_up]
+
+dir_list = glob.glob('data/fir/SPIRE/KS_results/KS_lofar_rerun_*.pkl')
+num_done = []
+for folder in dir_list:
+    num_done.append(int(folder.split('_')[-1].replace('.pkl','')))
+if taskid in num_done:
+    sys.exit()
 
 sources_done = []
 both_result = []
@@ -267,5 +274,5 @@ sign[mask] = -1
 mask = sign>0
 sign[mask] = 1
             
-f = open('data/fir/SPIRE/KS_lofar_rerun_{}.pkl'.format(taskid),'wb')
-pickle.dump([ks_test,sign,sources_done],f)
+f = open('data/fir/SPIRE/KS_results/KS_lofar_rerun_{}.pkl'.format(taskid),'wb')
+pickle.dump([ks_test,sign,sources_done,both_result,lofar_result,help_result],f)

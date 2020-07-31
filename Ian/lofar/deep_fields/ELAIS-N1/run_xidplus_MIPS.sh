@@ -3,8 +3,8 @@
 
 #$ -cwd
 
-#$ -o /lustre/scratch/astro/im281/FIR-group/Ian/lofar/deep_fields/ELAIS-N1/log/out
-#$ -e /lustre/scratch/astro/im281/FIR-group/Ian/lofar/deep_fields/ELAIS-N1/log/err
+#$ -o /lustre/scratch/astro/im281/FIR-group/Ian/lofar/deep_fields/ELAIS-N1/log/
+#$ -e /lustre/scratch/astro/im281/FIR-group/Ian/lofar/deep_fields/ELAIS-N1/log/
 
 #sumbit with the following command
 # qsub -t 1-10 -l m_mem_free=20G run_xidplus_MIPS.sh
@@ -23,5 +23,5 @@ cd /lustre/scratch/astro/im281/FIR-group/Ian/lofar/deep_fields/ELAIS-N1
 #export PATH="/its/home/im281/.conda/envs/herschelhelp/bin/python":$PATH
 echo running_python
 #/its/home/im281/.conda/envs/herschelhelp/bin/python3.6 XID+_run_ELAIS-N1_apollo.py
-/its/home/im281/.conda/envs/herschelhelp/bin/python3.6 XID+_run_MIPS.py
+/its/home/im281/.conda/envs/herschelhelp/bin/python3.6 XID+_run_MIPS_no_LOFAR.py
 echo finished

@@ -40,6 +40,9 @@ from astropy.table.info import serialize_method_as
 lofar = Table.read('data/data_release/final_cross_match_catalogue-v0.5.fits')
 mask = (~np.isnan(lofar['F_MIPS_24'])) 
 lofar = lofar[~mask]
+
+#remove if not running just the changed sources between v0.6 and v0.7
+lofar = Table.read('data/data_release/EN1_v0.6_v0.7_changedIDs.fits')
                         
 taskid = np.int(os.environ['SGE_TASK_ID'])-1
 print('taskid is: {}'.format(taskid))
@@ -50,7 +53,7 @@ if taskid*batch_size>len(lofar):
     sys.exit()
 ind_low = taskid*batch_size
 if taskid*batch_size+batch_size>len(lofar):
-    ind_up = len(lofar)-1
+    ind_up = len(lofar)
 else:
     ind_up = taskid*batch_size+batch_size
 ras = lofar['optRA'][ind_low:ind_up]
@@ -64,6 +67,7 @@ decs[mask] = lofar['DEC'][ind_low:ind_up][mask]
 ids = lofar['Source_Name'][ind_low:ind_up]
 
 prior_cat = Table.read('data/data_release/xidplus_prior_cat_MIPS.fits')
+prior_cat = Table.read('data/data_release/xidplus_prior_cat_MIPS_v0_7.fits')
 MIPS_lower = prior_cat['MIPS_lower']
 MIPS_upper = prior_cat['MIPS_upper']
 
@@ -119,13 +123,13 @@ MIPS_cat = Table.read(MIPS_cat)
 mask = [MIPS_cat['help_id'][i] in ids for i in range(len(MIPS_cat))]
 MIPS_cat = MIPS_cat[mask]
 
-if os.path.exists('data/fir/MIPS/xidplus_run_{}'.format(taskid))==True:()
+if os.path.exists('data/fir/v0_7/MIPS/xidplus_run_{}'.format(taskid))==True:()
 else:
-    os.mkdir('data/fir/MIPS/xidplus_run_{}'.format(taskid))
+    os.mkdir('data/fir/v0_7/MIPS/xidplus_run_{}'.format(taskid))
 
 #the next couple of lines are an alternative way to save astropy table since the Table.write method is currently broken
 with serialize_method_as(MIPS_cat, None):
-            registry.write(MIPS_cat,'data/fir/MIPS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),format='fits')
+            registry.write(MIPS_cat,'data/fir/v0_7/MIPS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),format='fits',overwrite=True)
 #Table.write(MIPS_cat,'data/fir/MIPS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),overwrite=True)
 
-xidplus.save([prior250],posterior,'data/fir/MIPS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.pkl'.format(taskid,taskid))
+xidplus.save([prior250],posterior,'data/fir/v0_7/MIPS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.pkl'.format(taskid,taskid))
