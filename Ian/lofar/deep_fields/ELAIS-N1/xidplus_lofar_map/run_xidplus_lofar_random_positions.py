@@ -49,7 +49,7 @@ fname = '../data/data_release/radio_image.fits'
 hdulist = fits.open(fname)
 radim_header = hdulist[0].header
 radim_wcs = wcs.WCS(radim_header).celestial
-radim_data = hdulist[0].data #convert to mJy
+radim_data = hdulist[0].data[0][0].astype('f4')*1000 #convert to mJy
 hdulist.close()
 radim_header['NAXIS']=2
 radim_header['WCSAXES']=2
@@ -80,8 +80,8 @@ FWHM_factor = 2*np.sqrt(2*np.log(2))
 sig_maj = 4/FWHM_factor#/2.355
 
 
-prf = Gaussian2DKernel(sig_maj,x_size=n_size,y_size=n_size)
-prf.normalize(mode='peak')
+prf_true = Gaussian2DKernel(sig_maj,x_size=n_size,y_size=n_size)
+prf_true.normalize(mode='peak')
 
 ras_old = lofar_orig['RA']
 decs_old = lofar_orig['DEC']
@@ -133,14 +133,14 @@ psf_dirty,coords,_ = pickle.load(open('data/PSF_coords.pkl','rb'))
 prfs = []
 pinds = []
 
-for n in range(len(prior.sra)):
-    if 'ILTJ' in prior.ID[n]:
+for m in range(len(prior.sra)):
+    if 'ILTJ' in prior.ID[m]:
         prfs.append(prf_true.array)
         
     else:
         prfs.append(psf_dirty[0])
 
-    pinds.append(np.arange(0,prfs[n].shape[0],1))
+    pinds.append(np.arange(0,prfs[m].shape[0],1))
 
 
 prior.set_prfs(prfs,pinds,pinds)
