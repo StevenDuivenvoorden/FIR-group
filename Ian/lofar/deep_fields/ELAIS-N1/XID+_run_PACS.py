@@ -27,7 +27,6 @@ import seaborn as sns
 import pandas as pd
 #sns.set_style("white")
 import xidplus.posterior_maps as postmaps
-from herschelhelp_internal.masterlist import merge_catalogues, nb_merge_dist_plot, specz_merge
 import pyvo as vo
 
 #imported to be able to write tables while astropy is broken
@@ -41,7 +40,7 @@ mask = (~np.isnan(lofar['F_SPIRE_250'])) | (~np.isnan(lofar['F_SPIRE_350'])) | (
 lofar = lofar[~mask]
 
 #remove if not running just the changed sources between v0.6 and v0.7
-lofar = Table.read('data/data_release/EN1_v0.6_v0.7_changedIDs.fits')
+#lofar = Table.read('data/data_release/EN1_v0.6_v0.7_changedIDs.fits')
 
 print(len(lofar))   
 
@@ -107,7 +106,7 @@ nim160=hdulist[0].data
 hdulist.close()
 
 prior_cat = Table.read('data/data_release/xidplus_prior_cat.fits')
-prior_cat = Table.read('data/data_release/xidplus_prior_cat_v0_7.fits')
+#prior_cat = Table.read('data/data_release/xidplus_prior_cat_v0_7.fits')
 
 from astropy.coordinates import SkyCoord
 from astropy import units as u
@@ -158,13 +157,13 @@ PACS_cat = Table.read(PACS_cat)
 mask = [PACS_cat['help_id'][i] in ids for i in range(len(PACS_cat))]
 PACS_cat = PACS_cat[mask]
 
-if os.path.exists('data/fir/v0_7/PACS/xidplus_run_{}'.format(taskid))==True:()
+if os.path.exists('data/fir/PACS/v2/xidplus_run_{}'.format(taskid))==True:()
 else:
-    os.mkdir('data/fir/v0_7/PACS/xidplus_run_{}'.format(taskid))
+    os.mkdir('data/fir/PACS/v2/xidplus_run_{}'.format(taskid))
 
 #the next couple of lines are an alternative way to save astropy table since the Table.write method is currently broken
-xidplus.save([prior100,prior160],posterior,'data/fir/v0_7/PACS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.pkl'.format(taskid,taskid))
+xidplus.save([prior100,prior160],posterior,'data/fir/PACS/v2/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.pkl'.format(taskid,taskid))
 with serialize_method_as(PACS_cat, None):
-            registry.write(PACS_cat,'data/fir/v0_7/PACS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),format='fits',overwrite=True)
+            registry.write(PACS_cat,'data/fir/PACS/v2/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),format='fits',overwrite=True)
 #Table.write(PACS_cat,'data/fir/PACS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),format='fits',overwrite=True)
 

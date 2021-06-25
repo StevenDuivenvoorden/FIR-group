@@ -27,7 +27,7 @@ import seaborn as sns
 import pandas as pd
 #sns.set_style("white")
 import xidplus.posterior_maps as postmaps
-from herschelhelp_internal.masterlist import merge_catalogues, nb_merge_dist_plot, specz_merge
+#from herschelhelp_internal.masterlist import merge_catalogues, nb_merge_dist_plot, specz_merge
 import pyvo as vo
 
 from astropy.io import registry
@@ -39,7 +39,7 @@ mask = (~np.isnan(lofar['F_SPIRE_250'])) | (~np.isnan(lofar['F_SPIRE_350'])) | (
 lofar = lofar[~mask]
 
 #remove if not running just the changed sources between v0.6 and v0.7
-lofar = Table.read('data/data_release/Bootes_v0.6_v0.7_changedIDs.fits')
+#lofar = Table.read('data/data_release/Bootes_v0.6_v0.7_changedIDs.fits')
 
 print(len(lofar))   
 
@@ -107,14 +107,14 @@ pixsize160=3600.0*np.abs(hdulist['IMAGE'].header['CDELT1']) #pixel size (in arcs
 nim160=hdulist['ERROR'].data*2.35045e-5*(np.abs(hdulist[1].header['CDELT1'])*3600)**2
 hdulist.close()
 
-prior_cat = Table.read('data/data_release/xidplus_prior_cat_rerun_mips.fits')
-prior_cat = Table.read('data/data_release/xidplus_prior_cat_v0_7.fits')
+prior_cat = Table.read('data/data_release/xidplus_prior_cat.fits')
+#prior_cat = Table.read('data/data_release/xidplus_prior_cat_v0_7.fits')
 
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 c = SkyCoord(ra=ras*u.degree, dec=decs*u.degree)  
 import pymoc
-moc=pymoc.util.catalog.catalog_to_moc(c,20,15)
+moc=pymoc.util.catalog.catalog_to_moc(c,60,15)
 
 #---prior100--------
 prior100=xidplus.prior(im100,nim100,im100phdu,im100hdu, moc=moc)#Initialise with map, uncertianty map, wcs info and primary header
@@ -149,10 +149,10 @@ prior100.get_pointing_matrix()
 prior160.get_pointing_matrix()
 
 
-from xidplus.stan_fit import PACS
-fit=PACS.all_bands(prior100,prior160,iter=1000)
+from xidplus.numpyro_fit import PACS
+fit=PACS.all_bands([prior100,prior160])
 
-posterior=xidplus.posterior_stan(fit,[prior100,prior160])
+posterior=xidplus.posterior_numpyro(fit,[prior100,prior160])
 
 priors = [prior100,prior160]
 
@@ -163,12 +163,12 @@ PACS_cat = Table.read(PACS_cat)
 mask = [PACS_cat['help_id'][i] in ids for i in range(len(PACS_cat))]
 PACS_cat = PACS_cat[mask]
 
-if os.path.exists('data/fir/v0_7/PACS/xidplus_run_{}'.format(taskid))==True:()
+if os.path.exists('data/fir/PACS/v2_numpyro/xidplus_run_{}'.format(taskid))==True:()
 else:
-    os.mkdir('data/fir/v0_7/PACS/xidplus_run_{}'.format(taskid))
-xidplus.save([prior100,prior160],posterior,'data/fir/v0_7/PACS/xidplus_run_{}/lofar_xidplus_fir_{}'.format(taskid,taskid))
+    os.mkdir('data/fir/PACS/v2_numpyro/xidplus_run_{}'.format(taskid))
+xidplus.save([prior100,prior160],posterior,'data/fir/PACS/v2_numpyro/xidplus_run_{}/lofar_xidplus_fir_{}'.format(taskid,taskid))
 #the next couple of lines are an alternative way to save astropy table since the Table.write method is currently broken
 with serialize_method_as(PACS_cat, None):
-            registry.write(PACS_cat,'data/fir/v0_7/PACS/xidplus_run_{}/lofar_xidplus_fir_{}.fits'.format(taskid,taskid),format='fits',overwrite=True)    
+            registry.write(PACS_cat,'data/fir/PACS/v2_numpyro/xidplus_run_{}/lofar_xidplus_fir_{}.fits'.format(taskid,taskid),format='fits',overwrite=True)    
 #Table.write(PACS_cat,'data/fir/PACS/xidplus_run_{}/lofar_xidplus_fir_{}_rerun.fits'.format(taskid,taskid),overwrite=True)
 

@@ -16,7 +16,7 @@ module load easybuild/software
 module load python/intelpython3/3.5.3
 # module load Anaconda3/4.0.0
 echo conda_activate
-source activate /its/home/im281/.conda/envs/herschelhelp
+source activate /its/home/im281/.conda/envs/herschelhelp_v2
 
 cd /lustre/scratch/astro/im281/FIR-group/Ian/lofar/deep_fields/Lockman
 # export PATH="/its/home/im281/.conda/envs/herschelhelp/bin/python":$PATH
